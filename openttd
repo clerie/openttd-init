@@ -41,11 +41,11 @@ as_user() {
 }
 
 openttd_start() {
-	pidfile=${PATH}/${SCREEN}.pid
+	pidfile=${CONFIGPATH}/${SCREEN}.pid
 	check_permissions
 
 	as_user "screen -dmS $SCREEN $SERVICE -D"
-	as_user "screen -list | grep '\.$SCREEN' | cut -f1 -d'.' | tr -d -c 0-9 > $pidfile"
+	as_user "screen -list | grep '\.$SCREEN' | cut -f1 -d'.' > $pidfile"
 
 	#
 	# Waiting for the server to start
@@ -69,13 +69,13 @@ openttd_start() {
 }
 
 openttd_stop() {
-	pidfile=${PATH}/${SCREEN}.pid
+	pidfile=${CONFIGPATH}/${SCREEN}.pid
 	#
 	# Stops the server
 	#
 	sleep 10
 	echo "Stopping server..."
-	openttd_command stop
+	openttd_command exit
 	sleep 0.5
 	#
 	# Waiting for the server to shut down
@@ -113,7 +113,7 @@ check_permissions() {
 is_running() {
 	# Checks for the minecraft servers screen session
 	# returns true if it exists.
-	pidfile=${PATH}/${SCREEN}.pid
+	pidfile=${CONFIGPATH}/${SCREEN}.pid
 
 	if [ -r "$pidfile" ]
 	then
@@ -148,7 +148,14 @@ is_running() {
 		fi
 	fi
 }
-
+openttd_command() {
+	if is_running
+	then
+			as_user "screen -p 0 -S $SCREEN -X eval 'stuff \"$(eval echo $FORMAT)\"\015'"
+	else
+			echo "$SERVICE was not running. Not able to run command."
+	fi
+}
 
 trap force_exit SIGINT
 
@@ -158,7 +165,6 @@ case "$1" in
 		if is_running; then
 			echo "Server already running."
 		else
-			check_links
 			openttd_start
 		fi
 		;;
@@ -177,7 +183,6 @@ case "$1" in
 		else
 			echo "No running server, starting it..."
 		fi
-		check_links
 		openttd_start
 		;;
 	help|--help|-h)
