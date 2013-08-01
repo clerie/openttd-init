@@ -13,9 +13,14 @@
 # Description:    Init script for openttd server. 
 ### END INIT INFO
 
+# =================
 # Created by Frodus
+# =================
 
-## Loads config file
+# Get the current login username
+ME=`whoami`
+
+# Loads the configuration file
 if [ -L $0 ]
 then
 	source `readlink -e $0 | sed "s:[^/]*$:config:"`
@@ -23,15 +28,15 @@ else
 	source `echo $0 | sed "s:[^/]*$:config:"`
 fi
 
-##Checks if config file is ok.
-if [ "$SERVICE" == "" ]
+# Checks if config file is ok.
+if [ "$USERNAME" == "" ]
 then
-	echo "Couldn't load config file, please edit config.example and rename it to config"
-	logger -t minecraft-init "Couldn't load config file, please edit config.example and rename it to config"
+	echo "Configuration file is not correct!"
+	echo "Make sure that you have renamed config.example to config and that you have edited/inserted all the fields"
 	exit
 fi
 
-ME=`whoami`
+# Makes sure that the correct user is starting and stopping the server
 as_user() {
 	if [ $ME == $USERNAME ] ; then
 		bash -c "$1"
@@ -40,79 +45,80 @@ as_user() {
 	fi
 }
 
+# Function to start the server
 openttd_start() {
 	pidfile=${CONFIGPATH}/${SCREEN}.pid
 	check_permissions
 
-	as_user "screen -dmS $SCREEN $SERVICE -D"
+	# Starts the server in a screen and saves the ID of the prossess to a pidfile
+	as_user "screen -dmS $SCREEN openttd -D"
 	as_user "screen -list | grep '\.$SCREEN' | cut -f1 -d'.' > $pidfile"
 
-	#
 	# Waiting for the server to start
-	#
-	seconds=0
+	sec=0
 	until is_running 
 	do
 		sleep 1
-		seconds=$seconds+1
-		if [[ $seconds -eq 10 ]]
+		sec=$sec+1
+		if [[ $sec -eq 10 ]]
 		then
-			echo "Still not running, waiting a while longer..."
+			echo "Server using to long time to start... Lets wait 60 sec before abort..."
 		fi
-		if [[ $seconds -ge 120 ]]
+		if [[ $sec -ge 60 ]]
 		then
 			echo "Failed to start, aborting."
 			exit 1
 		fi
 	done	
-	echo "$SERVICE is running."
+	echo "OPENTTD is now running!"
 }
 
+# Stops the server
 openttd_stop() {
 	pidfile=${CONFIGPATH}/${SCREEN}.pid
-	#
 	# Stops the server
-	#
 	sleep 10
-	echo "Stopping server..."
-	openttd_command exit
+	echo "Tries to stop server..."
+	# Sending "exit" to the admin consol
+	openttd_toConsol exit
 	sleep 0.5
-	#
-	# Waiting for the server to shut down
-	#
-	seconds=0
+	# Waiting for the server to stop
+	sec=0
 	isInStop=1
 	while is_running
 	do
 		sleep 1 
-		seconds=$seconds+1
-		if [[ $seconds -eq 5 ]]
+		sec=$sec+1
+		if [[ $sec -eq 5 ]]
 		then
-			echo "Still not shut down, waiting a while longer..."
+			echo "Server using longer time then expected to shutdown. Lets wait 60 sec before abort..."
 		fi
-		if [[ $seconds -ge 120 ]]
+		if [[ $sec -ge 60 ]]
 		then
-			logger -t openttd-init "Failed to shut down server, aborting."
-			echo "Failed to shut down, aborting."
+			echo "Could not stop server during this 60 sec"
+			echo "Check if server still runs by typing: 'screen -list' "
+			echo "If nothing is listed the server is not running..."
+			echo "If one or more screen are listed: type 'screen -r <The numbers in front of $SCREEN listed>'"
+			echo "Now you can stop the server manualy by type: 'exit'"
 			exit 1
 		fi
 	done
 	as_user "rm $pidfile"
 	unset isInStop
 	is_running
-	echo "$SERVICE is now shut down."
+	echo "OPENTTD is now shut down."
 }
 
+# Checks if you can create pidfile
 check_permissions() {
 	as_user "touch $pidfile"
 	if ! as_user "test -w '$pidfile'" ; then 
-		echo "Check Permissions. Cannot write to $pidfile. Correct the permissions and then excute: $0 status"
+		echo "Check Permissions!! Unable to create pidfile. Please correct the permissions and try again."
 	fi
 }
 
+# Checks if openttd screen exist.
 is_running() {
-	# Checks for the minecraft servers screen session
-	# returns true if it exists.
 	pidfile=${CONFIGPATH}/${SCREEN}.pid
 
 	if [ -r "$pidfile" ]
@@ -127,7 +133,7 @@ is_running() {
 				if [ -z "$roguePrinted" ]
 				then
 					roguePrinted=1
-					echo "Rogue pidfile found!"
+					echo "Pidfile found!"
 				fi
 			fi
 			return 1
@@ -135,8 +141,8 @@ is_running() {
 	else
 		if ps ax | grep -v grep | grep "${SCREEN} ${SERVICE}" > /dev/null
 		then
-			echo "No pidfile found, but server's running."
-			echo "Re-creating the pidfile."
+			echo "No pidfile found, but server seems to be running."
+			echo "Trying to creating new pidfile."
 			
 			pid=$(ps ax | grep -v grep | grep "${SCREEN} ${SERVICE}" | cut -f1 -d' ')
 			check_permissions
@@ -148,28 +154,28 @@ is_running() {
 		fi
 	fi
 }
-openttd_command() {
+# Send comands to the consol
+openttd_toConsol() {
 	if is_running
 	then
 			as_user "screen -p 0 -S $SCREEN -X eval 'stuff \"$(eval echo $FORMAT)\"\015'"
 	else
-			echo "$SERVICE was not running. Not able to run command."
+			echo "OPENTTD not running.."
 	fi
 }
-
 trap force_exit SIGINT
 
 case "$1" in
 	start)
-		# Starts the server
+		# Start the OPENTTD server
 		if is_running; then
-			echo "Server already running."
+			echo "Server is already running..."
 		else
 			openttd_start
 		fi
 		;;
 	stop)
-		# Stops the server
+		# Stops the OPENTTD server
 		if is_running; then
 			openttd_stop
 		else
@@ -177,7 +183,7 @@ case "$1" in
 		fi
 		;;
 	restart)
-		# Restarts the server
+		# Restarts the OPENTTD server
 		if is_running; then
 			openttd_stop
 		else
@@ -197,6 +203,5 @@ case "$1" in
 		echo "No such command, see $0 help"
 		exit 1
 		;;
-esac
-
+	esac
 exit 0
