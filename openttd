@@ -166,8 +166,15 @@ openttd_toConsol() {
 			echo "OPENTTD not running.."
 	fi
 }
+openttd_save() {
+	openttd_toConsol save $SAVEGAME
+	echo 'Saved game: '$SAVEGAME
+}
+openttd_load() {
+	openttd_toConsol load $SAVEGAME
+	echo 'Loaded game: '$SAVEGAME
+}
 trap force_exit SIGINT
-
 case "$1" in
 	start)
 		# Start the OPENTTD server
@@ -201,13 +208,13 @@ case "$1" in
 	save)
 		# Saves the current running game
 		if is_running; then
-			openttd_toConsol save $SAVEGAME
-			echo 'Saved game: '$SAVEGAME
+			openttd_save
 		fi
 		;;
 	autosave)
 		# Creates timestamped saves
 		if is_running; then
+			openttd_save
 			openttd_toConsol save $TIMESTAMP
 			echo 'Auto saved game at: '$TIMESTAMP
 		fi
@@ -215,8 +222,7 @@ case "$1" in
 	load)
 		# Loads the saved game
 		if is_running; then
-			openttd_toConsol load $SAVEGAME
-			echo 'Loaded game: '$SAVEGAME
+			openttd_load
 		fi
 		;;
 	help|--help|-h)
