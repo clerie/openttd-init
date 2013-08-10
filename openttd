@@ -30,7 +30,6 @@ fi
 
 # Get TimeStamp
 TIMESTAMP=$SAVEGAME-`date +"%Y-%m-%d_%H:%M"`
-echo $TIMESTAMP
 
 # Checks if config file is ok.
 if [ "$USERNAME" == "" ]
@@ -223,6 +222,7 @@ case "$1" in
 		echo -e "   start \t\t Starts the server"
 		echo -e "   stop \t\t Stops the server"
 		echo -e "   save \t\t Saves the running game"
+		echo -e "   autosave \t\t Saves the running game and adds a timestamp"
 		echo -e "   load \t\t Loads the saved game"
 		;;
 	*)
