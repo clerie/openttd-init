@@ -28,6 +28,10 @@ else
 	source `echo $0 | sed "s:[^/]*$:config:"`
 fi
 
+# Get TimeStamp
+TIMESTAMP=$SAVEGAME-`date +"%Y-%m-%d_%H:%M"`
+echo $TIMESTAMP
+
 # Checks if config file is ok.
 if [ "$USERNAME" == "" ]
 then
@@ -158,7 +162,7 @@ is_running() {
 openttd_toConsol() {
 	if is_running
 	then
-			as_user "screen -p 0 -S $SCREEN -X stuff 'exit'`echo -ne '\015'`"
+			as_user "screen -p 0 -S $SCREEN -X stuff '$1 $2'`echo -ne '\015'`"
 	else
 			echo "OPENTTD not running.."
 	fi
@@ -191,13 +195,35 @@ case "$1" in
 		fi
 		openttd_start
 		;;
+	save)
+		# Saves the current running game
+		if is_running; then
+			openttd_toConsol save $SAVEGAME
+			echo 'Saved game: '$SAVEGAME
+		fi
+		;;
+	autosave)
+		# Creates timestamped saves
+		if is_running; then
+			openttd_toConsol save $TIMESTAMP
+			echo 'Auto saved game at: '$TIMESTAMP
+		fi
+		;;
+	load)
+		# Loads the saved game
+		if is_running; then
+			openttd_toConsol load $SAVEGAME
+			echo 'Loaded game: '$SAVEGAME
+		fi
+		;;
 	help|--help|-h)
 		echo "Usage: $0 COMMAND"
 		echo 
 		echo "Available commands:"
 		echo -e "   start \t\t Starts the server"
 		echo -e "   stop \t\t Stops the server"
-		echo -e "   kill \t\t Kills the server"
+		echo -e "   save \t\t Saves the running game"
+		echo -e "   load \t\t Loads the saved game"
 		;;
 	*)
 		echo "No such command, see $0 help"
@@ -205,3 +231,4 @@ case "$1" in
 		;;
 	esac
 exit 0
+

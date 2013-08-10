@@ -16,3 +16,7 @@ SCREEN="server_screen"
 
 # Path to openttd server config directory 
 CONFIGPATH="/home/${USERNAME}/.openttd/"
+
+# When saving your world, this is the filename.
+SAVEGAME="myGame"
+
