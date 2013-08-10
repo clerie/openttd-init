@@ -175,11 +175,13 @@ case "$1" in
 			echo "Server is already running..."
 		else
 			openttd_start
+			openttd_load
 		fi
 		;;
 	stop)
 		# Stops the OPENTTD server
 		if is_running; then
+			openttd_save
 			openttd_stop
 		else
 			echo "No running server."
@@ -188,11 +190,13 @@ case "$1" in
 	restart)
 		# Restarts the OPENTTD server
 		if is_running; then
+			openttd_save
 			openttd_stop
 		else
 			echo "No running server, starting it..."
 		fi
 		openttd_start
+		openttd_load
 		;;
 	save)
 		# Saves the current running game
@@ -219,8 +223,9 @@ case "$1" in
 		echo "Usage: $0 COMMAND"
 		echo 
 		echo "Available commands:"
-		echo -e "   start \t\t Starts the server"
-		echo -e "   stop \t\t Stops the server"
+		echo -e "   start \t\t Starts the server and load the game"
+		echo -e "   stop \t\t Stops the server and save the game"
+		echo -e "   restart \t\t Saves the game and restarts the server"
 		echo -e "   save \t\t Saves the running game"
 		echo -e "   autosave \t\t Saves the running game and adds a timestamp"
 		echo -e "   load \t\t Loads the saved game"
