@@ -14,7 +14,7 @@ USERNAME=""
 # Name to use for the screen instance
 SCREEN="server_screen"
 
-# Path to openttd server config directory 
+# Path to openttd server config directory  (CONFIGPATH can not end with a /)
 CONFIGPATH="/home/${USERNAME}/.openttd"
 
 # When saving your world, this is the filename.
