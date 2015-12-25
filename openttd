@@ -114,7 +114,7 @@ openttd_stop() {
 
 # Checks if you can create pidfile
 check_permissions() {
-	as_user "mkdir -P $CONFIGPATH"
+	as_user "mkdir -p $CONFIGPATH"
 	as_user "touch $pidfile"
 	if ! as_user "test -w '$pidfile'" ; then 
 		echo "Check Permissions!! Unable to create pidfile. Please correct the permissions and try again."
