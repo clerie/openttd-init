@@ -178,28 +178,7 @@ openttd_load() {
 force_exit() {  # Kill the server running (messily) in an emergency
 	echo ""
 	echo "SIGINIT CALLED - FORCE EXITING!"
-	pidfile=${CONFIGPATH}/${SCREEN}.pid
-	echo "Tries to stop server..."
-	# Sending "exit" to the admin consol
-	openttd_toConsol exit
-	sleep 0.5
-	# Waiting for the server to stop
-	sec=0
-	isInStop=1
-	while is_running
-	do
-		sleep 1 
-		sec=$sec+1
-		if [[ $sec -eq 5 ]]
-		then
-			echo "Server using longer time then expected to shutdown. Lets wait 60 sec before abort..."
-		fi
-		if [[ $sec -ge 60 ]]
-	done
-	as_user "rm $pidfile"
-	unset isInStop
-	is_running
-	echo "OPENTTD is now shut down."
+	openttd_stop()
 }
 trap force_exit SIGINT
 case "$1" in
