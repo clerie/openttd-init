@@ -177,6 +177,14 @@ openttd_load() {
 }
 trap force_exit SIGINT
 case "$1" in
+	status)
+		# Is server running?
+		if is_running; then
+			echo "OPENTTD is running"
+		else
+			echo "OPENTTD is not running"
+		fi
+		;;
 	start)
 		# Start the OPENTTD server
 		if is_running; then
@@ -230,6 +238,7 @@ case "$1" in
 		echo "Usage: $0 COMMAND"
 		echo 
 		echo "Available commands:"
+		echo -e "   status \t\t Shows the current status of the server"
 		echo -e "   start \t\t Starts the server and load the game"
 		echo -e "   stop \t\t Stops the server and save the game"
 		echo -e "   restart \t\t Saves the game and restarts the server"
