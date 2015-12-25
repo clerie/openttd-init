@@ -178,7 +178,7 @@ openttd_load() {
 force_exit() {  # Kill the server running (messily) in an emergency
 	echo ""
 	echo "SIGINIT CALLED - FORCE EXITING!"
-	openttd_stop()
+	openttd_stop
 }
 trap force_exit SIGINT
 case "$1" in
